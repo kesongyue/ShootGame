@@ -4,19 +4,22 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    enum State {Staying, Running, Aiming};
+    enum State { Staying, Running, Aiming };
     State state;
     private int blood = 0;
-    private Vector3 position;
-    private int firearmsType;
     private float speed;
-    private float CameraMoveSpeedX = 20.0f;
+    private float CameraMoveSpeedX = 15.0f;
     Actions actions;
     PlayerController playerController;
     Scene scene;
     [SerializeField] LayerMask whatIsGround = 1 << 8;
     bool locking;
-
+    private LineRenderer lineRenderer;
+    public GameObject fire;
+    private int demageValue;
+    private int weapontype;
+    private float time;
+    private float interval;
     public delegate void die();
     public static event die deathEvent;
 
@@ -25,26 +28,38 @@ public class Player : MonoBehaviour
     {
         //scene = Scene.getInstance();
         blood = 100;
-        position = new Vector3(0, 0, 0);
-        firearmsType = 0;
         speed = 1.0f;
         actions = GetComponent<Actions>();
         playerController = GetComponent<PlayerController>();
         playerController.SetArsenal("Rifle");
         Monster.hitPlayerEvent += getDamage;
+        demageValue = 15;
+        weapontype = 0;
+        time = 0;
+        interval = 0.2f;
+        lineRenderer = GetComponent<LineRenderer>();
+        lineRenderer.startWidth = 0.5f;
+        lineRenderer.endWidth = 0.6f;
+       
     }
 
     // Update is called once per frame
     void Update()
     {
+        time += Time.deltaTime;
+        if (GameObject.FindWithTag("MainCamera").GetComponent<MyGame>().gameState != GameState.begin)
+        {
+            return;
+        }
         float x = Input.GetAxis("Mouse X") * CameraMoveSpeedX;
         transform.localEulerAngles += new Vector3(-0, x);
-        if (transform.position.y < -10)
+        if (transform.position.y < -15.0f)
         {
             blood = 0;
         }
         if (blood <= 0)
         {
+            Death();
             if (deathEvent != null)
             {
                 deathEvent();
@@ -66,21 +81,88 @@ public class Player : MonoBehaviour
                 locking = false;
             }
         }
-        if (Input.GetMouseButtonDown(0))
+
+        if (locking && Input.GetMouseButtonDown(0))
         {
-            Attack();
-        }       
+            if (time > interval)
+            {
+                shootLine();
+                time = 0;
+            }
+        }
+        if (Input.GetMouseButtonUp(0))
+        {
+            lineRenderer.enabled = false;
+        }
+
     }
 
+    public void shootLine()
+    {
+
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit))
+        {
+            if (hit.transform.tag == "Monster1" || hit.transform.tag == "Monster2")
+            {
+                lineRenderer.enabled = true;
+                lineRenderer.SetPosition(0, fire.transform.position);
+                lineRenderer.SetPosition(1, hit.transform.position);
+                hit.transform.gameObject.GetComponent<Monster>().Hited(demageValue);
+            }
+        }
+    }
+    private void OnTriggerEnter(Collider collision)
+    {
+        if (collision.gameObject.tag == "Item")
+        {
+            Debug.Log("Item");
+            weapontype = collision.gameObject.GetComponent<Item>().hitted();
+            switch (weapontype)
+            {
+                case 0:
+                    setLineColor(Color.green);
+                    demageValue = 15;
+                    interval = 0.2f;
+                    speed = 1.0f;
+                    break;
+                case 1:
+                    setLineColor(Color.red);
+                    demageValue = 50;
+                    interval = 1.0f;
+                    speed = 0.6f;
+                    break;
+                case 2:
+                    setLineColor(Color.blue);
+                    demageValue = 30;
+                    interval = 0.5f;
+                    speed = 0.8f;
+                    break;
+                default: break;
+            }
+        }
+    }
+
+    private void setLineColor(Color color)
+    {
+        lineRenderer.startColor = color;
+        lineRenderer.endColor = color;
+    }
     public void getDamage()
     {
-        blood -= 30;
-        Debug.Log(blood);
+        blood = blood - 30 > 0 ? blood - 30 : 0;
+        Damage();
     }
 
-    public void ChangeSpeed(int speed_)
+    public int getBlood()
     {
-        speed = speed_;
+        return blood;
+    }
+
+    public int getWeaponType()
+    {
+        return weapontype;
     }
 
     public void playerMove(float translationX, float translationZ)

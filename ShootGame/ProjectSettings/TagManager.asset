@@ -6,6 +6,9 @@ TagManager:
   tags:
   - Monster1
   - Monster2
+  - Exploson5
+  - Exploson10
+  - Item
   layers:
   - Default
   - TransparentFX

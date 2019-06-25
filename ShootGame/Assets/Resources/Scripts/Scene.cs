@@ -5,7 +5,6 @@ using UnityEngine;
 public class Scene : MonoBehaviour
 {
     public static Scene instance;
-    private GameObject map;
     private GameObject player;
     private MonsterFactory monsterFactory;
     private List<GameObject> monsters;
@@ -17,7 +16,6 @@ public class Scene : MonoBehaviour
 
     void Start()
     {
-        map = null;
         player = null;
         monsterFactory = MonsterFactory.getInstance();
         monsters = new List<GameObject>();
@@ -36,9 +34,8 @@ public class Scene : MonoBehaviour
 
     public void loadResource()
     {
-        map = Instantiate(Resources.Load("Prefabs/Low_Poly_Boat_Yard"), new Vector3(0, -1.0f, 0), Quaternion.identity) as GameObject;
         player = GameObject.FindWithTag("Player");
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 10; i++)
         {
             monsters.Add(monsterFactory.getMonster());
         }
@@ -49,14 +46,14 @@ public class Scene : MonoBehaviour
         player.GetComponent<Player>().playerMove(translationX, translationZ);
     }
 
-    public void playerShoot()
+    public int playerBlood()
     {
-
+        return player.GetComponent<Player>().getBlood();
     }
 
-    public void changeGun(int gunType)
+    public int playerWeapon()
     {
-
+        return player.GetComponent<Player>().getWeaponType();
     }
 
 }

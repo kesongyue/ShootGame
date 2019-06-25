@@ -37,6 +37,7 @@ public class MonsterFactory : MonoBehaviour
         if (free.Count > 0)
         {
             newMonster = free[0];
+            newMonster.transform.position = new Vector3(UnityEngine.Random.Range(10.0f, 50.0f), 15.0f, UnityEngine.Random.Range(10.0f, 50.0f));
             free.RemoveAt(0);
         } else
         {

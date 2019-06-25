@@ -5,10 +5,8 @@ using UnityEngine;
 public class Monster : MonoBehaviour
 {
     private int blood;
-    private Vector3 monsterPosition;
     private Vector3 nextPosition;
     private float speed;
-    private int type;
     private bool patroling;
     private bool dead;
     private float patrolTime;
@@ -19,13 +17,14 @@ public class Monster : MonoBehaviour
     public delegate void HitPlayer();
     public static event HitPlayer hitPlayerEvent;
 
+    public delegate void death();
+    public static event death deathEvent;
+
     // Start is called before the first frame update
     void Start()
     {
         blood = 100;
-        monsterPosition = new Vector3(0, 0, 0);
         speed = 2.0f;
-        type = 1;
         dead = false;
         patroling = true;
         patrolTime = 5.0f;
@@ -40,17 +39,47 @@ public class Monster : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        monsterPosition = this.transform.position;
-        if (monsterPosition.y <= 1.5f)
+        if (GameObject.FindWithTag("MainCamera").GetComponent<MyGame>().gameState != GameState.begin)
+        {
+            return;
+        }
+        if (transform.position.y <= 1.5f)
         {
             animator.SetBool("run", true);
         }
-        if (blood < 0)
+        if (blood <= 0)
         {
             die();
         } else
         {
             monsterMove();
+        }
+        if (dead)
+        {
+            disappearTime += Time.deltaTime;
+            if (disappearTime > 2.0f)
+            {
+                Instantiate(Resources.Load("Prefabs/Exploson5"), transform.position, Quaternion.identity);
+                float ran = Random.Range(0.0f, 1.0f);
+                if (ran < 0.4f)
+                {
+                    Instantiate(Resources.Load("Prefabs/Item"), transform.position + new Vector3(0, 0.4f, 0), Quaternion.identity);
+                }
+                monsterFactory.freeMonster(this.gameObject);
+                this.gameObject.SetActive(false);
+                if (deathEvent != null)
+                {
+                    deathEvent();
+                }
+                blood = 100;
+                speed = 2.0f;
+                dead = false;
+                patroling = true;
+                patrolTime = 5.0f;
+                disappearTime = 0.0f;
+                animator.SetBool("run", false);
+                animator.SetBool("dead", false);
+            }
         }
     }
 
@@ -58,11 +87,11 @@ public class Monster : MonoBehaviour
     {
         if (!dead && patroling)
         {
-            if (patrolTime > 3.0f)
+            if (patrolTime > Random.Range(3.0f, 6.0f))
             {
-                float deltaX = Random.Range(-10.0f, 10.0f);
-                float deltaZ = Random.Range(-10.0f, 10.0f);
-                nextPosition = new Vector3(this.transform.position.x + deltaX, 0, this.transform.position.y + deltaZ);
+                float deltaX = Random.Range(-100.0f, 100.0f);
+                float deltaZ = Random.Range(-100.0f, 100.0f);
+                nextPosition = new Vector3(this.transform.position.x + deltaX, this.transform.position.y, this.transform.position.y + deltaZ);
                 patrolTime = 0;
             }
             else
@@ -76,18 +105,10 @@ public class Monster : MonoBehaviour
             this.transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(nextPosition - this.transform.position), 5.0f);
             nextPosition = GameObject.FindWithTag("Player").transform.position;
             this.transform.position = Vector3.MoveTowards(this.transform.position, nextPosition, speed * Time.deltaTime);
-        } else
-        {
-            disappearTime += Time.deltaTime;
-            if (disappearTime > 2.0f)
-            {
-                monsterFactory.freeMonster(this.gameObject);
-                this.gameObject.SetActive(false);
-            }
         }
     }
 
-    public void exexplosion()
+    public void explosion()
     {
         if (dead == false && hitPlayerEvent != null)
         {
@@ -106,7 +127,7 @@ public class Monster : MonoBehaviour
     {
         if (other.gameObject.tag == "Player")
         {
-            exexplosion();
+            explosion();
         }
     }
 
@@ -125,20 +146,12 @@ public class Monster : MonoBehaviour
             patroling = true;
         }
     }
-    /*
-    public void setBlood(int newBlood)
+    public void Hited(int damage)
     {
-        blood = newBlood;
+        if (!dead)
+        {
+            blood -= damage;
+            Instantiate(Resources.Load("Prefabs/Exploson10"), transform.position, Quaternion.identity);
+        }
     }
-
-    public void setType(int newType)
-    {
-        type = newType;
-    }
-
-    public void setSpeed(float newSpeed)
-    {
-        speed = newSpeed;
-    }*/
-
 }
