@@ -13,7 +13,7 @@ public enum GameState
 
 public class MyGame : MonoBehaviour
 {
-        int score;
+    public static int score;
     public GameState gameState;
     private Scene scene;
 
@@ -72,38 +72,57 @@ public class MyGame : MonoBehaviour
         }
     }
 
+    public static int getScore()
+    {
+        return score;
+    }
+
     void OnGUI()
     {
+        
         GUIStyle style = new GUIStyle();
-        style.normal.background = null;
-        style.normal.textColor = new Color(0, 0, 0);
-        style.fontSize = 40;
-        GUI.TextField(new Rect(0, 0, 350, 50), "Score:" + score, style);
-
-        style.normal.background = null;
-        style.normal.textColor = new Color(0, 0, 0);
-        style.fontSize = 40;
-        GUI.TextField(new Rect(350, 0, 350, 50), "WeapenType:" + scene.playerWeapon(), style);
-
-        style.normal.background = null;
-        style.normal.textColor = new Color(0, 0, 0);
-        style.fontSize = 40;
-        GUI.TextField(new Rect(800, 0, 350, 50), "Blood:" + scene.playerBlood(), style);
 
         if (gameState == GameState.init)
         {
-            if (GUI.Button(new Rect(450, 150, 100, 50), "Start"))
+            if (GUI.Button(new Rect(450, 150, 100, 50), "开始游戏"))
             {
                 gameBegin();
             }
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape) && gameState == GameState.begin)
+        {
+            Time.timeScale = 0;
+            gameState = GameState.pause;
+        }
+
+        if (gameState == GameState.pause)
+        {
+            if (GUI.Button(new Rect(450, 100, 100, 50), "继续游戏"))
+            {
+                Time.timeScale = 1;
+                gameBegin();
+            }
+            if (GUI.Button(new Rect(450, 150, 100, 50), "退出游戏"))
+            {
+                Application.Quit();
+                UnityEditor.EditorApplication.isPlaying = false;
+            }
+        }
+
 
         if (gameState == GameState.over)
         {
             style.normal.background = null;
             style.normal.textColor = new Color(0, 0, 0);
             style.fontSize = 40;
-            GUI.TextField(new Rect(400, 160, 350, 50), "You Lose!", style);
+            GUI.TextField(new Rect(400, 160, 350, 50), "游戏失败!", style);
+            if (GUI.Button(new Rect(450, 100, 100, 50), "退出游戏"))
+            {
+                Application.Quit();
+                UnityEditor.EditorApplication.isPlaying = false;
+            }
+
         }
 
         if (gameState == GameState.win)
@@ -111,8 +130,13 @@ public class MyGame : MonoBehaviour
             style.normal.background = null;
             style.normal.textColor = new Color(0, 0, 0);
             style.fontSize = 40;
-            GUI.TextField(new Rect(400, 160, 350, 50), "You Win!", style);
+            GUI.TextField(new Rect(400, 160, 350, 50), "游戏胜利!", style);
+            if (GUI.Button(new Rect(450, 100, 100, 50), "退出游戏"))
+            {
+                Application.Quit();
+                UnityEditor.EditorApplication.isPlaying = false;
+            }
         }
-
+        
     }
 }

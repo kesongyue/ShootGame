@@ -56,4 +56,9 @@ public class Scene : MonoBehaviour
         return player.GetComponent<Player>().getWeaponType();
     }
 
+    public int playerState()
+    {
+        return player.GetComponent<Player>().getState();
+    }
+
 }

@@ -160,6 +160,13 @@ public class Player : MonoBehaviour
         return blood;
     }
 
+    public int getState()
+    {
+        if (state == State.Staying) return 0;
+        else if (state == State.Running) return 1;
+        else return 2;
+    }
+
     public int getWeaponType()
     {
         return weapontype;
